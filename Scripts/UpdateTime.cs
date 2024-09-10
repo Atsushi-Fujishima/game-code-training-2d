@@ -31,4 +31,10 @@ public class UpdateTime
     {
         previousTime = secound;
     }
+
+    public void InitializeTime()
+    {
+        elapsedTime = 0;
+        previousTime = 0;
+    }
 }

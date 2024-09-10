@@ -1,26 +1,28 @@
 
-// システム実行
-
-using System;
-
 public class Tetris_Fujishima : UserApplication
 {
     private UpdateTime time = new UpdateTime();
-    private UpdateTime castTime = new UpdateTime();
 
+    // 現在操作可能なブロック
     private Block currentBlock = null;
+
+    // 入力管理
+    PlayerInputControl playerInputControl = null;
+
+    // ブロック移動範囲
+    BlockField blockField = null;
 
     // ゲームプレイ開始フラグ
     private bool isGameStart = false;
 
     // ブロック生成補正位置
+    private int generateBlockPositionOffsetX = 90;
     private int generateBlockPositionOffsetY = 10;
 
     // ブロック移動
     // move = BlockのsquareLength
-    private int moveVertical = 8;
-    private int moveHorizontal = 8;
-    private bool isMoving = false;
+    private int moveVertical = 9;
+    private int moveHorizontal = 9;
 
     public override void Update(IMachine machine)
     {
@@ -35,46 +37,60 @@ public class Tetris_Fujishima : UserApplication
             // 1秒毎に落下
             if (time.IsOneSecoundLater())
             {
-                FallBlock(-moveVertical);
+                // TODO: 良い感じになったら使用
+                // 自由落下
+                // MoveVerticalBlock(-moveVertical);
             }
 
-            
-            if (isMoving == false)
-            {
-                PlayerControl(machine);
-            }
-            else
-            {
-                // ブロックを操作する度にクールタイム発生
-                if (castTime.IsOneSecoundLater())
-                {
-                    isMoving = false;
-                }
-            }
+            // プレイヤーによるブロック操作
+            PlayerControl();
         }
     }
 
+    // 画面に新しいブロックを描画
     private void GenerateBlock(IMachine machine)
     {
-        int generatePositionX = (int)(machine.Width * 0.5);
+        int generatePositionX = generateBlockPositionOffsetX;
         int generatePositionY = machine.Height - generateBlockPositionOffsetY;
         currentBlock = new Block(machine);
         currentBlock.Draw(generatePositionX, generatePositionY);
     }
 
-    private void PlayerControl(IMachine machine)
+    private void PlayerControl()
     {
-        if (machine.Down)
-        {
-            MoveVerticalBlock(-moveVertical);
-        }
-        else if (machine.Left)
+        if (playerInputControl.LeftKeyWasPressed())
         {
             MoveHorizontalBlock(-moveHorizontal);
         }
-        else if (machine.Right)
+        else if (playerInputControl.RightKeyWasPressed())
         {
             MoveHorizontalBlock(moveHorizontal);
+        }
+        else if (playerInputControl.DownKeyWasPressed())
+        {
+            MoveVerticalBlock(-moveVertical);
+        }
+
+        if (playerInputControl.LeftKey())
+        {
+            MoveHorizontalBlock(-moveHorizontal);
+        }
+        else if (playerInputControl.RightKey())
+        {
+            MoveHorizontalBlock(moveHorizontal);
+        }
+        else if (playerInputControl.DownKey())
+        {
+            MoveVerticalBlock(-moveVertical);
+        }
+    }
+
+    private void MoveVerticalBlock(int power)
+    {
+        if (currentBlock.PermitMove(0, power))
+        {
+            currentBlock.Erase();
+            currentBlock.Draw(currentBlock.PivotX, currentBlock.PivotY + power);
         }
         else
         {
@@ -82,33 +98,27 @@ public class Tetris_Fujishima : UserApplication
         }
     }
 
-    private void FallBlock(int power)
-    {
-        currentBlock.Erase();
-        currentBlock.Draw(currentBlock.PivotX, currentBlock.PivotY + power);
-    }
-
-    private void MoveVerticalBlock(int power)
-    {
-        currentBlock.Erase();
-        currentBlock.Draw(currentBlock.PivotX, currentBlock.PivotY + power);
-        isMoving = true;
-        castTime.UpdatePrevousTime(0);
-        castTime.UpdatePrevousTime(0);
-    }
-
     private void MoveHorizontalBlock(int power)
     {
-        currentBlock.Erase();
-        currentBlock.Draw(currentBlock.PivotX + power, currentBlock.PivotY);
-        isMoving = true;
-        castTime.UpdatePrevousTime(0);
-        castTime.UpdatePrevousTime(0);
+        if (currentBlock.PermitMove(power, 0))
+        {
+            currentBlock.Erase();
+            currentBlock.Draw(currentBlock.PivotX + power, currentBlock.PivotY);
+        }
+        else
+        {
+            return;
+        }
     }
 
     private void GameStart(IMachine machine)
     {
         isGameStart = true;
+        playerInputControl = new PlayerInputControl(machine);
+
+        blockField = new BlockField(machine);
+        blockField.GenerateFrame();
+
         machine.Log("Game Start : {0}", isGameStart);
     }
 
