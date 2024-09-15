@@ -1,4 +1,7 @@
 
+using System;
+using System.Numerics;
+
 public class Tetris_Fujishima : UserApplication
 {
     private UpdateTime time = new UpdateTime();
@@ -17,7 +20,7 @@ public class Tetris_Fujishima : UserApplication
 
     // ブロック生成補正位置
     private int generateBlockPositionOffsetX = 90;
-    private int generateBlockPositionOffsetY = 10;
+    private int generateBlockPositionOffsetY = 298;
 
     // ブロック移動
     // move = BlockのsquareLength
@@ -37,9 +40,8 @@ public class Tetris_Fujishima : UserApplication
             // 1秒毎に落下
             if (time.IsOneSecoundLater())
             {
-                // TODO: 良い感じになったら使用
                 // 自由落下
-                // MoveVerticalBlock(-moveVertical);
+                FallingBlock(-moveVertical, machine);
             }
 
             // プレイヤーによるブロック操作
@@ -50,10 +52,23 @@ public class Tetris_Fujishima : UserApplication
     // 画面に新しいブロックを描画
     private void GenerateBlock(IMachine machine)
     {
-        int generatePositionX = generateBlockPositionOffsetX;
-        int generatePositionY = machine.Height - generateBlockPositionOffsetY;
-        currentBlock = new Block(machine);
-        currentBlock.Draw(generatePositionX, generatePositionY);
+        // 無作為にブロックタイプを決める
+        //currentBlock = new Block(machine, RandomBlockType());
+
+        // TODO: ブロックの種類を固定にしてテスト中
+        currentBlock = new Block(machine, BlockType.O);
+
+        currentBlock.Draw(generateBlockPositionOffsetX, generateBlockPositionOffsetY);
+    }
+
+    private BlockType RandomBlockType()
+    {
+        // 疑似乱数
+        Random random = new Random();
+        int r = random.Next(0, Enum.GetValues(typeof(BlockType)).Length);
+        Array blockTypeValues = Enum.GetValues(typeof(BlockType));
+        BlockType setType = (BlockType)blockTypeValues.GetValue(r);
+        return setType;
     }
 
     private void PlayerControl()
@@ -70,6 +85,12 @@ public class Tetris_Fujishima : UserApplication
         {
             MoveVerticalBlock(-moveVertical);
         }
+        else if (playerInputControl.UpKeyWasPressed())
+        {
+            // TODO: 機能テスト中
+            blockField.EraseLine();
+           // currentBlock.FakeRotation();
+        }
 
         if (playerInputControl.LeftKey())
         {
@@ -85,12 +106,24 @@ public class Tetris_Fujishima : UserApplication
         }
     }
 
+    private void FallingBlock(int power, IMachine machine)
+    {
+        if (currentBlock.PermitMove(0, power))
+        {
+            currentBlock.Move(new Vector2(0, power));
+        }
+        else
+        {
+            // 現在のブロックの制御を失い、新しいブロックを生成する
+            GenerateBlock(machine);
+        }
+    }
+
     private void MoveVerticalBlock(int power)
     {
         if (currentBlock.PermitMove(0, power))
         {
-            currentBlock.Erase();
-            currentBlock.Draw(currentBlock.PivotX, currentBlock.PivotY + power);
+            currentBlock.Move(new Vector2(0, power));
         }
         else
         {
@@ -102,8 +135,7 @@ public class Tetris_Fujishima : UserApplication
     {
         if (currentBlock.PermitMove(power, 0))
         {
-            currentBlock.Erase();
-            currentBlock.Draw(currentBlock.PivotX + power, currentBlock.PivotY);
+            currentBlock.Move(new Vector2(power, 0));
         }
         else
         {

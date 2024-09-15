@@ -13,6 +13,8 @@ public class PlayerInputControl
     private bool isDownKeySet = false;
     private int downKeyCount = 0;
 
+    private bool isUpKeySet = false;
+
     public PlayerInputControl(IMachine machine)
     {
         this.machine = machine;
@@ -138,6 +140,25 @@ public class PlayerInputControl
         else
         {
             isDownKeySet = false;
+            return false;
+        }
+    }
+
+    public bool UpKeyWasPressed()
+    {
+        if (machine.Up)
+        {
+            if (isUpKeySet)
+            {
+                return false;
+            }
+
+            isUpKeySet = true;
+            return true;
+        }
+        else
+        {
+            isUpKeySet = false;
             return false;
         }
     }
