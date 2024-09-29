@@ -53,10 +53,10 @@ public class Tetris_Fujishima : UserApplication
     private void GenerateBlock(IMachine machine)
     {
         // 無作為にブロックタイプを決める
-        //currentBlock = new Block(machine, RandomBlockType());
+        currentBlock = new Block(machine, RandomBlockType());
 
         // TODO: ブロックの種類を固定にしてテスト中
-        currentBlock = new Block(machine, BlockType.O);
+        //currentBlock = new Block(machine, BlockType.O);
 
         currentBlock.Draw(generateBlockPositionOffsetX, generateBlockPositionOffsetY);
     }
@@ -87,9 +87,8 @@ public class Tetris_Fujishima : UserApplication
         }
         else if (playerInputControl.UpKeyWasPressed())
         {
-            // TODO: 機能テスト中
-            blockField.EraseLine();
-           // currentBlock.FakeRotation();
+            currentBlock.Test_Rotattion_9();
+            // currentBlock.FakeRotation();
         }
 
         if (playerInputControl.LeftKey())
@@ -114,6 +113,9 @@ public class Tetris_Fujishima : UserApplication
         }
         else
         {
+            // TODO: 機能テスト中
+            blockField.EraseLine();
+
             // 現在のブロックの制御を失い、新しいブロックを生成する
             GenerateBlock(machine);
         }

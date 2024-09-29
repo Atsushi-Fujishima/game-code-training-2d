@@ -150,7 +150,12 @@ public class BlockField
                 byte[] getColor = new byte[3];
                 machine.GetPixel(out getColor[0], out getColor[1], out getColor[2], (int)v2.X, (int)v2.Y);
 
-                block.DrawSquare((int)v2.X, (int)v2.Y -1, getColor);
+                // ˆê”Ô‰º‚ÌLine‚Í—Ž‚Æ‚³‚È‚¢
+                if (v2.Y != starttingPoint.Y + moveValue)
+                {
+                    block.DrawSquare((int)v2.X, (int)v2.Y - moveValue, getColor);
+                }
+                
             }
         }
     }
